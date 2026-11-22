@@ -1100,7 +1100,7 @@ post-deployment checklist has passed.
 https://github.com/YOUR-USERNAME/expense-tracker
 ```
 
-Status: local Git history contains nine meaningful commits on `main`. The
+Status: local Git history contains a meaningful commit history on `main`. The
 GitHub remote and push are still pending. The repository must not contain
 `.env` files or credentials.
 
