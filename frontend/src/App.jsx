@@ -24,11 +24,10 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
         <Route element={<AppLayout />}>
-          <Route path="/login" element={<LoginPage />} />
           <Route index element={<DashboardPage />} />
           <Route path="expenses" element={<ExpensesPage />} />
-
           <Route
             path="admin"
             element={
@@ -39,7 +38,6 @@ export default function App() {
               </AdminRoute>
             }
           />
-
           <Route
             path="tasks"
             element={
@@ -48,7 +46,6 @@ export default function App() {
               </AdminRoute>
             }
           />
-
           <Route
             path="notifications"
             element={
@@ -57,7 +54,6 @@ export default function App() {
               </AdminRoute>
             }
           />
-
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

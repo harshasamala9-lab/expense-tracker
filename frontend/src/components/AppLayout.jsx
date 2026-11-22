@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { IconMenu, IconPlus, IconLogout } from './Icons.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
 import Sidebar from './Sidebar.jsx';
+import LoginPage from '../pages/LoginPage.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function AppLayout() {
@@ -22,12 +23,7 @@ export default function AppLayout() {
   }, [loading, user, navigate]);
 
   if (!loading && !user) {
-    return (
-      <div className="route-fallback">
-        <span className="spinner spinner--dark" aria-hidden="true" />
-        <span>Opening sign-in…</span>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   return (
