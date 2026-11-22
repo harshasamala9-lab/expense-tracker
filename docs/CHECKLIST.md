@@ -31,7 +31,7 @@ Legend:
 | Frontend deployment (Vercel) | ⏳ Pending | `vercel.json` and env documentation are ready |
 | Public URL testing | ⏳ Pending | Must be done after both deployments exist |
 | Demo video | ⏳ Pending | Script and checklist are ready; video not recorded |
-| Git repository | ⏳ Pending | Local Git history is being created; GitHub remote/push still required |
+| Git repository | ✅ Local / ⏳ Remote | 9 meaningful commits created locally; GitHub remote/push still required |
 | README | ✅ Done | Architecture, API, schema, setup, testing, deployment |
 | Interview preparation | ✅ Done | `docs/INTERVIEW_QA.md` |
 
@@ -176,7 +176,7 @@ Legend:
 - ✅ `frontend/.env.example` documents required variables without secrets.
 - ✅ Backend `.env` exists locally but is ignored by Git.
 - ✅ No credentials are present in source files.
-- ⏳ Initialize Git repository and create meaningful commits.
+- ✅ Initialize Git repository and create meaningful commits (9 commits on `main`).
 - ⏳ Create GitHub repository and push.
 - ⏳ Confirm the remote does not contain `.env` files.
 

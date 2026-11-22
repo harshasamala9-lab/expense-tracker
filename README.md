@@ -1100,8 +1100,9 @@ post-deployment checklist has passed.
 https://github.com/YOUR-USERNAME/expense-tracker
 ```
 
-Status: local Git history is being prepared; the GitHub remote and push are
-pending. The repository must not contain `.env` files or credentials.
+Status: local Git history contains nine meaningful commits on `main`. The
+GitHub remote and push are still pending. The repository must not contain
+`.env` files or credentials.
 
 CI workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs backend
 tests and the frontend production build on pushes and pull requests.
