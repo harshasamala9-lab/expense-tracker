@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test output
+coverage/
+
+# Local database data (used only for local verification)
+.pgdata/
+.pg/
+
+# Deployment tooling
+.vercel/
+.render/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
