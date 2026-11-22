@@ -292,8 +292,31 @@
   font-size: 12.5px;
 }
 
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .app-footer-user {
   color: var(--muted);
+}
+
+.footer-logout {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.footer-logout:hover {
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  border-color: var(--danger-soft);
 }
 
 .sidebar-footer-top {

@@ -89,7 +89,9 @@ export default function AppLayout() {
 
         <footer className="app-footer">
           <span>Expense Tracker · Personal finance workspace</span>
-          {user ? <span className="app-footer-user">Signed in as {user.email}</span> : null}
+          <button type="button" className="footer-logout" onClick={logout} aria-label="Sign out">
+            Sign out
+          </button>
         </footer>
       </div>
     </div>

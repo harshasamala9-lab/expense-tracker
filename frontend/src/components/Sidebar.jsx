@@ -98,19 +98,16 @@ export default function Sidebar({ open, onClose }) {
       </div>
 
       <div className="sidebar-footer">
-        <div className="sidebar-footer-top">
-          <span className="sidebar-footer-version">Expense Tracker v1.0</span>
-          <button
-            type="button"
-            className="sidebar-signout"
-            aria-label="Sign out"
-            title="Sign out"
-            onClick={logout}
-          >
-            <IconLogout />
-          </button>
-        </div>
-        <span className="sidebar-footer-email">{user?.email ?? ''}</span>
+        <span className="sidebar-footer-version">Expense Tracker v1.0</span>
+        <button
+          type="button"
+          className="sidebar-signout"
+          aria-label="Sign out"
+          title="Sign out"
+          onClick={logout}
+        >
+          <IconLogout />
+        </button>
       </div>
     </aside>
   );

@@ -84,7 +84,7 @@ export default function SignupPage() {
           </button>
 
           <div className="auth-divider" />
-          <Link to="/login" className="auth-link">Already have an account? Sign in</Link>
+          <Link to="/login" className="auth-link">Sign in instead</Link>
         </form>
       </div>
     </div>

@@ -5,6 +5,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import RecentExpenses from '../components/RecentExpenses.jsx';
+import { dashboardGreeting } from '../utils/greeting.js';
 import {
   ChartSkeleton,
   RecentListSkeleton,
@@ -20,12 +21,14 @@ import {
   IconTrendingUp,
   IconWallet,
 } from '../components/Icons.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useDashboardData } from '../hooks/useDashboardData.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import { formatCurrency, percentage } from '../utils/format.js';
 
 export default function DashboardPage() {
   usePageTitle('Dashboard');
+  const { user } = useAuth();
 
   const { summary, recentExpenses, loading, error, refresh } =
     useDashboardData({ recentLimit: 5 });
@@ -46,7 +49,18 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow="Overview"
         title="Dashboard"
-        description="A clear view of your spending, all in one place."
+        description={
+          <>
+            {initialLoading || !user ? (
+              'A clear view of your spending, all in one place.'
+            ) : (
+              <span>
+                {dashboardGreeting(user)} · A clear view of your spending, all
+                in one place.
+              </span>
+            )}
+          </>
+        }
         actions={
           <Link to="/expenses" className="btn btn-primary">
             <IconPlus />

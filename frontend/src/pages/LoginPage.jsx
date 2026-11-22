@@ -65,7 +65,14 @@ export default function LoginPage() {
       setOtpSent(true);
       setCooldown(60);
     } catch (err) {
-      setError(err.message || 'Could not send the email code.');
+      const message = err.message || 'Could not send the email code.';
+      if (message.toLowerCase().includes('rate limit')) {
+        setError(
+          'Supabase is rate limiting email sign-in. Try again in a few minutes, or sign in with Google if available.',
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setOtpBusy(false);
     }
