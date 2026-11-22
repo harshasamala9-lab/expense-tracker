@@ -14,7 +14,8 @@ const url =
   'https://rixidsaynxniblysmlxu.supabase.co';
 const key =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'sb_publishable_e-bD-WsUzb-GdzzS5eoStw_mC8lm4WW';
 
 const supabase = createClient(url, key, SUPABASE_CONFIG);
 
