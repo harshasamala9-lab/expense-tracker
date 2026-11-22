@@ -12,6 +12,7 @@ from psycopg.rows import dict_row
 
 from .config import get_settings
 from .database import get_pool
+from .outbox import emit_import_events
 from .parsing import CsvFormatError, parse_csv
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,8 @@ class ImportSummary:
     imported_count: int = 0
     skipped_count: int = 0
     failed_count: int = 0
+    parse_error_count: int = 0
+    categorization_required_count: int = 0
     total_amount: Decimal = Decimal("0.00")
     started_at: datetime | None = None
     finished_at: datetime | None = None
@@ -136,6 +139,10 @@ def import_csv_bytes(content: bytes, file_name: str) -> ImportSummary:
     try:
         parsed = parse_csv(content, source=SOURCE)
         summary.failed_count = len(parsed.errors)
+        summary.parse_error_count = len(parsed.errors)
+        summary.categorization_required_count = sum(
+            1 for row in parsed.rows if row.category == "Other"
+        )
         summary.errors = [
             {"rowNumber": error.row_number, "message": error.message}
             for error in parsed.errors
@@ -200,6 +207,7 @@ def import_csv_bytes(content: bytes, file_name: str) -> ImportSummary:
             summary.total_amount,
             None,
         )
+        emit_import_events(summary)
         return summary
     except CsvFormatError as exc:
         summary.status = "failed"
@@ -213,6 +221,7 @@ def import_csv_bytes(content: bytes, file_name: str) -> ImportSummary:
             summary.total_amount,
             str(exc),
         )
+        emit_import_events(summary)
         raise
     except Exception as exc:  # noqa: BLE001 - preserve audit trail
         logger.exception("Import failed for %s", safe_name)
@@ -226,6 +235,7 @@ def import_csv_bytes(content: bytes, file_name: str) -> ImportSummary:
             summary.total_amount,
             "The import could not be completed.",
         )
+        emit_import_events(summary)
         raise exc
 
 

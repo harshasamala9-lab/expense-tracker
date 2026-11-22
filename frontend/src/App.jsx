@@ -9,6 +9,7 @@ import ExpensesPage from './pages/ExpensesPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import { useAuth, AdminRoute } from './context/AuthContext.jsx';
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="expenses" element={<ExpensesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route
             path="admin"
             element={

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function SignupPage() {
   const { signup } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -25,6 +26,7 @@ export default function SignupPage() {
 
     try {
       await signup(email, password);
+      navigate('/tasks', { replace: true });
     } catch (err) {
       setError(err.message || 'Sign-up failed.');
     } finally {

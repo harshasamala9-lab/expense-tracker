@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -30,6 +30,7 @@ function GoogleButton() {
 
 export default function LoginPage() {
   const { login, pendingOAuth } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -41,6 +42,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
+      navigate('/tasks', { replace: true });
     } catch (err) {
       setError(err.message || 'Sign-in failed.');
     } finally {

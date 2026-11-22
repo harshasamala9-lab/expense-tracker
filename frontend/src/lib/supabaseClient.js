@@ -9,15 +9,13 @@ const SUPABASE_CONFIG = {
   },
 };
 
-// Supabase is only used to initiate real Google Sign In With Google.
-// Sessions are exchanged with the expense-tracker API at
-// POST /api/auth/supabase-login.
-const supabase =
-  window.supabase ??
-  createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY,
-    SUPABASE_CONFIG,
-  );
+const url =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://rixidsaynxniblysmlxu.supabase.co';
+const key =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(url, key, SUPABASE_CONFIG);
 
 export default supabase;

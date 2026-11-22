@@ -30,7 +30,7 @@ function readToken() {
     return '';
   }
   try {
-    return window.localStorage.getItem('accessToken') ?? '';
+    return window.localStorage.getItem('expense-tracker-access-token') ?? '';
   } catch {
     return '';
   }
@@ -98,6 +98,15 @@ export async function signup(email, password) {
   const payload = await request('/auth/signup', {
     method: 'POST',
     body: { email, password },
+    auth: false,
+  });
+  return payload;
+}
+
+export async function googleLogin(code, redirectUri) {
+  const payload = await request('/auth/google', {
+    method: 'POST',
+    body: { code, redirectUri },
     auth: false,
   });
   return payload;

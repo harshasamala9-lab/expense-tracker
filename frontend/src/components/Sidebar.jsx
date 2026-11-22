@@ -7,6 +7,7 @@ import {
   IconLogo,
   IconLogout,
   IconReceipt,
+  IconSettings,
   IconTasks,
   IconWallet,
   IconX,
@@ -17,6 +18,7 @@ const workspaceLinks = [
   { to: '/expenses', label: 'Expenses', icon: IconReceipt },
   { to: '/tasks', label: 'Tasks', icon: IconTasks },
   { to: '/notifications', label: 'Notifications', icon: IconBell },
+  { to: '/settings', label: 'Settings', icon: IconSettings },
 ];
 
 const insightLinks = [

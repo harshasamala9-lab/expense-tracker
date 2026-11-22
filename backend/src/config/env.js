@@ -21,6 +21,8 @@ export const config = Object.freeze({
   automationKey: process.env.AUTOMATION_KEY?.trim() || '',
   supabaseUrl: process.env.SUPABASE_URL?.trim().replace(/\/+$/, '') || '',
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY?.trim() || '',
+  googleClientId: process.env.GOOGLE_CLIENT_ID?.trim() || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET?.trim() || '',
   internalAutomationKey: process.env.INTERNAL_AUTOMATION_KEY?.trim() || '',
   enableWorkers: process.env.ENABLE_WORKERS !== 'false',
   reminderIntervalMs:

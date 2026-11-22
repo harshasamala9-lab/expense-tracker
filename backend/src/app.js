@@ -82,12 +82,10 @@ export function createApp({
   const app = express();
   app.disable('x-powered-by');
 
-  if (config.nodeEnv === 'production') {
-    // Render terminates TLS at its proxy. Trusting the first proxy hop lets
-    // the rate limiter see the real client IP without trusting arbitrary
-    // client-supplied forwarding headers.
-    app.set('trust proxy', 1);
-  }
+  // Render and the public development tunnel both terminate TLS at a proxy.
+  // Trusting the first hop keeps rate limiting and CORS accurate without
+  // trusting arbitrary client-supplied forwarding headers.
+  app.set('trust proxy', 1);
 
   app.use(helmet());
   app.use(cors(buildCorsOptions(frontendUrl)));

@@ -11,6 +11,7 @@ import { PgAdminRepository } from './repositories/PgAdminRepository.js';
 import { ExpenseService } from './services/expenseService.js';
 import { AuthService } from './services/authService.js';
 import { SupabaseAuthService } from './services/supabaseAuthService.js';
+import { GoogleAuthService } from './services/googleAuthService.js';
 import { AdminService } from './services/adminService.js';
 import { AutomationClient } from './services/automationClient.js';
 import { createIntervalWorker } from './services/reminderService.js';
@@ -63,6 +64,15 @@ const authService = new AuthService(userRepository, {
   jwtExpiresIn: config.jwtExpiresIn,
 });
 const authController = createAuthController(authService);
+const googleAuthService = new GoogleAuthService({
+  authService,
+  userRepository,
+  clientId: config.googleClientId,
+  clientSecret: config.googleClientSecret,
+});
+if (googleAuthService.configured) {
+  console.log('[auth] Direct Google OAuth is enabled.');
+}
 const supabaseAuthService = new SupabaseAuthService({
   authService,
   userRepository,
@@ -103,6 +113,18 @@ const app = createApp({
   internalAutomationKey: config.internalAutomationKey,
   frontendUrl: config.frontendUrl,
   healthCheck: () => pool.query('SELECT 1'),
+});
+
+app.post('/api/auth/google', async (req, res, next) => {
+  try {
+    const session = await googleAuthService.exchange({
+      code: req.body?.code,
+      redirectUri: req.body?.redirectUri,
+    });
+    return res.status(200).json(session);
+  } catch (error) {
+    return next(error);
+  }
 });
 
 app.post('/api/auth/supabase-login', async (req, res, next) => {

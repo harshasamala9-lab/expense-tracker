@@ -24,6 +24,16 @@ function readAccessToken() {
   return token ? token : null;
 }
 
+function readGoogleCode() {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  if (!code || !state) return null;
+  const expected = window.sessionStorage?.getItem('google-oauth-state');
+  return { code, state, expected };
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => readStoredToken());
   const [user, setUser] = useState(null);
@@ -76,6 +86,25 @@ export function AuthProvider({ children }) {
       .finally(() => setPendingOAuth(false));
   }, [navigate, refresh]);
 
+  // Google redirects back to /login?code=...&state=... Exchange the code for
+  // the local admin session and clear the query string.
+  useEffect(() => {
+    const result = readGoogleCode();
+    if (!result || result.state !== result.expected) return;
+
+    setPendingOAuth(true);
+    window.history.replaceState({}, '', '/login');
+    void api
+      .googleLogin(result.code, `${window.location.origin}/login`)
+      .then((session) => {
+        try { window.localStorage.setItem(STORAGE_KEY, session.token); } catch {}
+        navigate('/tasks', { replace: true });
+        void refresh();
+      })
+      .catch(() => navigate('/login'))
+      .finally(() => setPendingOAuth(false));
+  }, [navigate, refresh]);
+
   const login = useCallback(
     async (email, password) => {
       const session = await api.login(email, password);
@@ -99,19 +128,27 @@ export function AuthProvider({ children }) {
   );
 
   const loginWithGoogle = useCallback(async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo:
-          import.meta.env.VITE_SUPABASE_REDIRECT_URL ||
-          `${window.location.origin}/login`,
-        skipBrowserRedirect: false,
-      },
-    });
-    if (error) {
-      throw error;
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw new Error('Google client ID is not configured.');
     }
-    return data;
+
+    const state = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    try { window.sessionStorage.setItem('google-oauth-state', state); } catch {}
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: `${window.location.origin}/login`,
+      response_type: 'code',
+      scope: 'openid email profile',
+      state,
+      access_type: 'online',
+      prompt: 'select_account',
+    });
+
+    window.location.assign(
+      `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+    );
   }, []);
 
   const logout = useCallback(async () => {
