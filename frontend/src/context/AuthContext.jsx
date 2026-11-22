@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
     setPendingOAuth(true);
     window.history.replaceState({}, '', '/login');
     void api
-      .supabaseLogin(result.token)
+      .supabaseLogin(result)
       .then((session) => {
         try { window.localStorage.setItem(STORAGE_KEY, session.token); } catch {}
         navigate('/tasks', { replace: true });

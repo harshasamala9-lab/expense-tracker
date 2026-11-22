@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { IconGoogle } from '../components/Icons.jsx';
 
 function GoogleButton() {
