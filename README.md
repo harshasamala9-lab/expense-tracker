@@ -1,5 +1,7 @@
 # Expense Tracker
 
+[![CI](https://github.com/harshasamala9-lab/expense-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/harshasamala9-lab/expense-tracker/actions/workflows/ci.yml)
+
 A full-stack expense management and spending analytics application built with
 **React, Express, PostgreSQL, and Recharts**.
 
@@ -1097,12 +1099,12 @@ post-deployment checklist has passed.
 ## GitHub repository
 
 ```text
-https://github.com/YOUR-USERNAME/expense-tracker
+https://github.com/harshasamala9-lab/expense-tracker
 ```
 
-Status: local Git history contains a meaningful commit history on `main`. The
-GitHub remote and push are still pending. The repository must not contain
-`.env` files or credentials.
+Status: pushed to GitHub with a meaningful commit history. The repository is
+public, CI passes on `main`, and it contains no `.env` files or credentials.
+Deployment is still pending.
 
 CI workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs backend
 tests and the frontend production build on pushes and pull requests.
