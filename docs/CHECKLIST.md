@@ -330,8 +330,8 @@ Do these in order. Full details are in `docs/DEPLOYMENT.md`.
    - Record and upload the demo video; add the link.
 7. **Final secrets check**
    - `git status` should not list any `.env` file.
-   - Search the repository for `expense_local_password`, Supabase passwords,
-     and service-role keys before making the repository public.
+   - Search the repository for the local development password, Supabase
+     passwords, and service-role keys before making the repository public.
 
 ---
 
