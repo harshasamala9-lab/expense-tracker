@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
 import { IconGoogle } from '../components/Icons.jsx';
@@ -22,14 +22,13 @@ function GoogleButton() {
 
   return (
     <button type="button" className="btn btn-google btn-full" disabled={busy} onClick={handle}>
-      {error ? <IconGoogle /> : <IconGoogle />}
       {busy ? 'Redirecting to Google…' : 'Continue with Google'}
     </button>
   );
 }
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, pendingOAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,11 +53,13 @@ export default function LoginPage() {
         <PageHeader
           eyebrow="Sign in"
           title="Welcome back"
-          description="Enter your credentials or continue with Google."
+          description="Enter your credentials, continue with Google, or create a new account."
         />
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           {error ? <InlineAlert message={error} onRetry={() => setError(null)} /> : null}
+
+          {pendingOAuth ? <div className="auth-loading">Completing Google sign-in…</div> : null}
 
           <label htmlFor="email" className="auth-label">Email address</label>
           <input
@@ -82,16 +83,15 @@ export default function LoginPage() {
             required
           />
 
-          <button type="submit" className="btn btn-primary btn-full" disabled={busy}>
+          <button type="submit" className="btn btn-primary btn-full" disabled={busy || pendingOAuth}>
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
 
           <GoogleButton />
-        </form>
 
-        <p className="auth-footnote">
-          Need help? Create an administrator with <code>npm run admin:create</code>.
-        </p>
+          <div className="auth-divider" />
+          <Link to="/login" className="auth-link">Already have an account? Sign in</Link>
+        </form>
       </div>
     </div>
   );

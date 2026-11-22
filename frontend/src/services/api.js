@@ -94,6 +94,15 @@ export async function login(email, password) {
   return payload;
 }
 
+export async function signup(email, password) {
+  const payload = await request('/auth/signup', {
+    method: 'POST',
+    body: { email, password },
+    auth: false,
+  });
+  return payload;
+}
+
 export async function supabaseLogin(accessToken) {
   const payload = await request('/auth/supabase-login', {
     method: 'POST',

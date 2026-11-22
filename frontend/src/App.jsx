@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import AppLayout from './components/AppLayout.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import SignupPage from './pages/SignupPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
@@ -25,6 +26,7 @@ export default function App() {
     <ErrorBoundary>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="expenses" element={<ExpensesPage />} />

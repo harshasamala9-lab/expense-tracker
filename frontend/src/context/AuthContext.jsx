@@ -14,10 +14,21 @@ function readStoredToken() {
   }
 }
 
+function readAccessToken() {
+  if (typeof window === 'undefined') return null;
+
+  const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const fromQuery = new URLSearchParams(window.location.search);
+  const token = fromHash.get('access_token') || fromQuery.get('access_token');
+
+  return token ? token : null;
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => readStoredToken());
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pendingOAuth, setPendingOAuth] = useState(false);
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
@@ -45,30 +56,40 @@ export function AuthProvider({ children }) {
     void refresh();
   }, [refresh]);
 
-  // After a Google callback, supabase returns an access token. Exchange it for
-  // the same local admin session the API uses, then continue to /tasks.
+  // After a Google callback, Supabase returns an access token in the URL hash
+  // (or query). Exchange it for the same local admin session the API uses,
+  // then clear the URL and continue to the authenticated workspace.
   useEffect(() => {
-    if (window.location.hash.startsWith('#access_token=') || window.location.search.startsWith('?access_token=')) {
-      const hashToken = window.location.hash.replace(/^#access_token=/, '').split('&')[0] || null;
-      const queryToken = window.location.search.replace(/^\?access_token=/, '').split('&')[0] || null;
-      const token = hashToken || queryToken;
-      if (token) {
-        window.history.replaceState({}, '', '/login');
-        void api
-          .supabaseLogin(token)
-          .then((session) => {
-            try { window.localStorage.setItem(STORAGE_KEY, session.token); } catch {}
-            navigate('/tasks', { replace: true });
-            void refresh();
-          })
-          .catch(() => navigate('/login'));
-      }
-    }
+    const result = readAccessToken();
+    if (!result) return;
+
+    setPendingOAuth(true);
+    window.history.replaceState({}, '', '/login');
+    void api
+      .supabaseLogin(result.token)
+      .then((session) => {
+        try { window.localStorage.setItem(STORAGE_KEY, session.token); } catch {}
+        navigate('/tasks', { replace: true });
+        void refresh();
+      })
+      .catch(() => navigate('/login'))
+      .finally(() => setPendingOAuth(false));
   }, [navigate, refresh]);
 
   const login = useCallback(
     async (email, password) => {
       const session = await api.login(email, password);
+      window.localStorage.setItem(STORAGE_KEY, session.token);
+      setToken(session.token);
+      await refresh();
+      return session;
+    },
+    [refresh],
+  );
+
+  const signup = useCallback(
+    async (email, password) => {
+      const session = await api.signup(email, password);
       window.localStorage.setItem(STORAGE_KEY, session.token);
       setToken(session.token);
       await refresh();
@@ -107,7 +128,9 @@ export function AuthProvider({ children }) {
         user,
         isAdmin: user?.role === 'admin',
         loading,
+        pendingOAuth,
         login,
+        signup,
         loginWithGoogle,
         logout,
         refresh,
