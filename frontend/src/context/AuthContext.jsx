@@ -161,7 +161,9 @@ export function AuthProvider({ children }) {
   );
 
   const loginWithGoogle = useCallback(async () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId =
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      '507356089095-rf9mqbpfjuouu3h8r9r4u5vklj41gsve.apps.googleusercontent.com';
     if (!clientId) {
       throw new Error('Google client ID is not configured.');
     }
