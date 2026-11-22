@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
 from .config import get_settings
@@ -28,7 +29,10 @@ def get_pool() -> ConnectionPool:
             max_size=5,
             timeout=10,
             open=False,
-            kwargs={"application_name": "expense-automation"},
+            kwargs={
+                "application_name": "expense-automation",
+                "row_factory": dict_row,
+            },
         )
         _pool.open()
 

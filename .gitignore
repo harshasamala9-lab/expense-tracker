@@ -10,6 +10,9 @@ build/
 .env.*
 !.env.example
 
+# Google OAuth client secret downloads (never commit credentials)
+client_secret_*.json
+
 # Logs
 *.log
 npm-debug.log*

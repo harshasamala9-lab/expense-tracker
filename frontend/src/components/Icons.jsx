@@ -257,6 +257,53 @@ export function IconSettings(props) {
   );
 }
 
+export function IconCategoryFood(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 2v20" />
+      <path d="M17 6H9a4 4 0 0 0 0 8h10a4 4 0 0 1 0-8Z" />
+    </IconBase>
+  );
+}
+
+export function IconCategoryTravel(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M22 2 11 13" />
+      <path d="M22 2 15 22l-4-9-9-4Z" />
+      <path d="M11 13 2 9v4l9 2 2 2" />
+    </IconBase>
+  );
+}
+
+export function IconCategoryShopping(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M6 8h12l1.5 13a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 8Z" />
+      <path d="M9 8a3 3 0 0 1 6 0" />
+    </IconBase>
+  );
+}
+
+export function IconCategoryBills(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 2v20l2-2h14V4l-2 2H6a2 2 0 0 1-2-2V2Z" />
+      <path d="M8 10h4M8 14h8" />
+    </IconBase>
+  );
+}
+
+export function IconCategoryOther(props) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="19" cy="12" r="1" fill="currentColor" />
+      <circle cx="5" cy="12" r="1" fill="currentColor" />
+    </IconBase>
+  );
+}
+
 export function IconLogo({ size = 22, className = '', ...rest }) {
   return (
     <svg

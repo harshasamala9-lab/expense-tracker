@@ -180,6 +180,12 @@
   white-space: nowrap;
 }
 
+.category-badge-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
 .category-dot {
   display: inline-block;
   flex-shrink: 0;
@@ -218,6 +224,13 @@
   border-color: var(--border-strong);
   background: var(--surface-muted);
   color: var(--text);
+}
+
+.filter-chip-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 2px;
+  vertical-align: -2px;
 }
 
 .filter-chip.is-active {

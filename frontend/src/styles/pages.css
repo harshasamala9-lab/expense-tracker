@@ -497,12 +497,21 @@
 }
 
 .category-summary-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.category-summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-share {

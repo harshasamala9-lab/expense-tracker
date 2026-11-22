@@ -78,6 +78,7 @@ def emit_import_events(summary: Any) -> None:
         "importedCount": summary.imported_count,
         "skippedCount": summary.skipped_count,
         "failedCount": summary.failed_count,
+        "parseErrorCount": getattr(summary, "parse_error_count", 0),
         "categorizationRequiredCount": getattr(
             summary, "categorization_required_count", 0
         ),
