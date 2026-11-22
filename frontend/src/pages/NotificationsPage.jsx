@@ -7,7 +7,7 @@ import { useNotifications } from '../hooks/useNotifications.js';
 import { IconBell, IconRefresh } from '../components/Icons.jsx';
 
 export default function NotificationsPage() {
-  const { items, unreadCount, loading, error, refresh, markAllRead } =
+  const { items, unreadCount, loading, refreshing, error, refresh, markAllRead } =
     useNotifications();
 
   return (
@@ -30,10 +30,10 @@ export default function NotificationsPage() {
               type="button"
               className="btn btn-secondary"
               onClick={refresh}
-              disabled={loading}
+              disabled={loading || refreshing}
             >
-              <IconRefresh />
-              Refresh
+              {refreshing ? <span className="spinner" aria-hidden="true" /> : <IconRefresh />}
+              {refreshing ? 'Refreshing…' : 'Refresh'}
             </button>
           </>
         }

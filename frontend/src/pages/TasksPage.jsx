@@ -9,7 +9,7 @@ import * as api from '../services/api.js';
 import { IconRefresh, IconAlertCircle, IconTasks } from '../components/Icons.jsx';
 
 export default function TasksPage() {
-  const { tasks, summary, loading, error, refresh, act } = useTasks();
+  const { tasks, summary, loading, refreshing, error, refresh, act } = useTasks();
 
   const complete = (task) => void act(async () => api.completeTask(task.id));
   const cancel = (task) => void act(async () => api.cancelTask(task.id));
@@ -21,9 +21,9 @@ export default function TasksPage() {
         title="Pending tasks"
         description="Real administrator work queued for this workspace."
         actions={
-          <button type="button" className="btn btn-secondary" onClick={refresh} disabled={loading}>
-            <IconRefresh />
-            Refresh
+          <button type="button" className="btn btn-secondary" onClick={refresh} disabled={loading || refreshing}>
+            {refreshing ? <span className="spinner" aria-hidden="true" /> : <IconRefresh />}
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
         }
       />
