@@ -163,6 +163,11 @@
   background: var(--surface-strong);
 }
 
+.auth-google-group {
+  display: grid;
+  gap: 8px;
+}
+
 .auth-divider {
   display: flex;
   align-items: center;

@@ -184,6 +184,20 @@ export function AuthProvider({ children }) {
     );
   }, []);
 
+  // Falls back to Supabase-managed Google OAuth. This uses Supabase's Google
+  // provider, which is useful when a custom Google Cloud OAuth client is
+  // restricted to a single organization.
+  const loginWithGoogleSupabase = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/login` },
+    });
+
+    if (error) {
+      throw error;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try { window.localStorage.removeItem(STORAGE_KEY); } catch {}
     setToken('');
@@ -204,6 +218,7 @@ export function AuthProvider({ children }) {
         sendEmailCode,
         supabaseEmailLogin,
         loginWithGoogle,
+        loginWithGoogleSupabase,
         logout,
         refresh,
       }}

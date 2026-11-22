@@ -6,25 +6,42 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { IconGoogle } from '../components/Icons.jsx';
 
 function GoogleButton() {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, loginWithGoogleSupabase } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [busyAlt, setBusyAlt] = useState(false);
   const [error, setError] = useState(null);
 
-  const handle = async () => {
-    setBusy(true);
+  const handle = async (fn, setPending) => {
+    setPending(true);
     setError(null);
     try {
-      await loginWithGoogle();
+      await fn();
     } catch (err) {
       setError(err.message || 'Google sign-in failed.');
-      setBusy(false);
+      setPending(false);
     }
   };
 
   return (
-    <button type="button" className="btn btn-google btn-full" disabled={busy} onClick={handle}>
-      {busy ? 'Redirecting to Google…' : 'Continue with Google'}
-    </button>
+    <div className="auth-google-group">
+      <button
+        type="button"
+        className="btn btn-google btn-full"
+        disabled={busy || busyAlt}
+        onClick={() => handle(loginWithGoogle, setBusy)}
+      >
+        {busy ? 'Redirecting to Google…' : 'Continue with Google'}
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary btn-full"
+        disabled={busy || busyAlt}
+        onClick={() => handle(loginWithGoogleSupabase, setBusyAlt)}
+      >
+        {busyAlt ? 'Redirecting to Google…' : 'Continue with Google (Supabase)'}
+      </button>
+      {error ? <InlineAlert message={error} onRetry={() => setError(null)} /> : null}
+    </div>
   );
 }
 
@@ -66,9 +83,19 @@ export default function LoginPage() {
       setCooldown(60);
     } catch (err) {
       const message = err.message || 'Could not send the email code.';
-      if (message.toLowerCase().includes('rate limit')) {
+      const lower = message.toLowerCase();
+      if (lower.includes('rate limit')) {
         setError(
-          'Supabase is rate limiting email sign-in. Try again in a few minutes, or sign in with Google if available.',
+          'Supabase is rate limiting email sign-in. Try again in a few minutes, or sign in with Google.',
+        );
+      } else if (
+        lower.includes('smtp') ||
+        lower.includes('error sending') ||
+        lower.includes('confirmation email') ||
+        lower.includes('email sending')
+      ) {
+        setError(
+          'The server could not send the confirmation email (SMTP is misconfigured). Please sign in with Google instead, or ask the administrator to fix the Supabase SMTP settings.',
         );
       } else {
         setError(message);
