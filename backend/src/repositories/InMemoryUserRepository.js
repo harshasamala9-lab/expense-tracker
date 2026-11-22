@@ -43,6 +43,16 @@ export class InMemoryUserRepository {
     return { id: user.id, email: user.email, role: user.role };
   }
 
+  async updateRole(id, role) {
+    const user = this.users.find((item) => item.id === id);
+    if (!user) {
+      return null;
+    }
+
+    user.role = role;
+    return { id: user.id, email: user.email, role: user.role };
+  }
+
   async updatePassword(id, passwordHash) {
     const user = this.users.find((item) => item.id === id);
     if (!user) {

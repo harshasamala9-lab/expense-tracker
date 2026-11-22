@@ -127,6 +127,39 @@ export function AuthProvider({ children }) {
     [refresh],
   );
 
+  const sendEmailCode = useCallback(async (email) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}`,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+  }, []);
+
+  const supabaseEmailLogin = useCallback(
+    async (email, password) => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        throw error;
+      }
+
+      const session = await api.supabaseLogin(data.session.access_token);
+      window.localStorage.setItem(STORAGE_KEY, session.token);
+      setToken(session.token);
+      await refresh();
+      return session;
+    },
+    [refresh],
+  );
+
   const loginWithGoogle = useCallback(async () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) {
@@ -168,6 +201,8 @@ export function AuthProvider({ children }) {
         pendingOAuth,
         login,
         signup,
+        sendEmailCode,
+        supabaseEmailLogin,
         loginWithGoogle,
         logout,
         refresh,

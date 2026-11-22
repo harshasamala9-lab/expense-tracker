@@ -1,15 +1,22 @@
+import bcrypt from 'bcryptjs';
+import { randomUUID } from 'node:crypto';
 import { AppError } from '../utils/AppError.js';
 
 /**
  * Exchanges a Supabase access token for a local administrator session.
  *
- * Google login is offered through Supabase (Real Sign In With Google). The
- * user still authenticates against the local PostgreSQL `users` table through
- * the normal API JWT; this service bridges the two so the frontend does not
- * need to know anything about Supabase.
+ * Any verified Supabase account is provisioned as a local admin on first
+ * login. That means personal Gmail accounts and organization accounts both
+ * work; access is not restricted to a pre-created admin list.
  */
 export class SupabaseAuthService {
-  constructor({ authService, userRepository, supabaseUrl, supabaseAnonKey, logger = console }) {
+  constructor({
+    authService,
+    userRepository,
+    supabaseUrl,
+    supabaseAnonKey,
+    logger = console,
+  }) {
     this.authService = authService;
     this.userRepository = userRepository;
     this.supabaseUrl = supabaseUrl;
@@ -27,29 +34,51 @@ export class SupabaseAuthService {
     });
 
     if (!response.ok) {
-      throw new AppError(401, 'Google sign-in failed. Try again.');
+      throw new AppError(401, 'Sign-in failed. Try again.');
     }
 
     const data = await response.json().catch(() => ({}));
-    const user = data?.user;
-    const email = user?.user_metadata?.email || user?.email;
+    const providerUser = data?.user;
+    const email = String(
+      providerUser?.user_metadata?.email || providerUser?.email || '',
+    )
+      .trim()
+      .toLowerCase();
 
     if (!email) {
-      throw new AppError(401, 'Google sign-in failed. Try again.');
+      throw new AppError(401, 'Sign-in failed. Try again.');
     }
 
-    const localUser = await this.userRepository.findByEmail(email);
+    const verified =
+      providerUser?.user_metadata?.email_verified === true ||
+      providerUser?.email_verified === true ||
+      Boolean(providerUser?.confirmed_at);
 
-    if (!localUser || localUser.role !== 'admin') {
-      this.logger.warn(
-        `[auth] Google sign-in attempted for ${email.slice(0, 5)}… with no local admin account.`,
-      );
-      throw new AppError(
-        403,
-        'You do not have access to the administration area. Sign in with the administrator account.',
-      );
+    if (!verified) {
+      throw new AppError(401, 'Verify your email before signing in.');
     }
 
-    return this.authService.issueSession(localUser);
+    let user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      // First-time Supabase users get a session with a random local password.
+      // They can still sign in with Supabase OTP or their linked provider.
+      const passwordHash = await bcrypt.hash(`supabase:${randomUUID()}`, 12);
+      user = await this.userRepository.create({
+        email,
+        passwordHash,
+        role: 'admin',
+      });
+      this.logger.log(`[auth] Provisioned admin for ${email}`);
+    }
+
+    if (user.role !== 'admin') {
+      user = await this.userRepository.updateRole?.(user.id, 'admin');
+      if (!user) {
+        throw new AppError(403, 'This account cannot access the admin area.');
+      }
+    }
+
+    return this.authService.issueSession(user);
   }
 }

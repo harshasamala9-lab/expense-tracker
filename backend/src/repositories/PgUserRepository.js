@@ -44,6 +44,18 @@ export class PgUserRepository {
     return rows[0];
   }
 
+  async updateRole(id, role) {
+    const { rows } = await this.pool.query(
+      `UPDATE users
+          SET role = $2
+        WHERE id = $1
+        RETURNING id, email, role, created_at`,
+      [id, role],
+    );
+
+    return rows[0] ?? null;
+  }
+
   async updatePassword(id, passwordHash) {
     const { rows } = await this.pool.query(
       `UPDATE users
