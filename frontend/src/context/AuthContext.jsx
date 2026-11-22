@@ -169,9 +169,12 @@ export function AuthProvider({ children }) {
     const state = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     try { window.sessionStorage.setItem('google-oauth-state', state); } catch {}
 
+    const redirectUri =
+      import.meta.env.VITE_GOOGLE_REDIRECT_URI || `${window.location.origin}`;
+
     const params = new URLSearchParams({
       client_id: clientId,
-      redirect_uri: `${window.location.origin}`,
+      redirect_uri: redirectUri,
       response_type: 'code',
       scope: 'openid email profile',
       state,
