@@ -1,48 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { IconMenu, IconPlus } from './Icons.jsx';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { IconMenu, IconPlus, IconLogout } from './Icons.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
 import Sidebar from './Sidebar.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    const closeOnResize = () => {
-      if (window.innerWidth > 900) {
-        setSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', closeOnResize);
-    return () => window.removeEventListener('resize', closeOnResize);
-  }, []);
-
-  useEffect(() => {
-    if (!sidebarOpen) {
-      return undefined;
+    if (!loading && !user) {
+      navigate('/login', { replace: true });
     }
+  }, [loading, user, navigate]);
 
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') {
-        setSidebarOpen(false);
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', closeOnEscape);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [sidebarOpen]);
+  if (!loading && !user) {
+    return (
+      <div className="route-fallback">
+        <span className="spinner spinner--dark" aria-hidden="true" />
+        <span>Opening sign-in…</span>
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -73,39 +59,31 @@ export default function AppLayout() {
             <IconMenu />
           </button>
 
-          <Link to="/" className="mobile-brand">
+          <Link to="/" className="mobile-brand" onClick={() => setSidebarOpen(false)}>
             <span className="brand-mark">
               <span className="brand-mark-inner">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <rect
-                    x="3"
-                    y="6"
-                    width="18"
-                    height="13"
-                    rx="3"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-                  <circle cx="17" cy="14.5" r="1.2" fill="currentColor" />
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                  <rect x="3" y="6" width="18" height="13" rx="3" stroke="currentColor" strokeWidth="1.8" />
+                  <circle cx="17" cy="14.5" r="1.25" fill="currentColor" />
                 </svg>
               </span>
             </span>
             Expense Tracker
           </Link>
 
-          <Link
-            to="/expenses"
-            className="mobile-add"
-            aria-label="Add an expense"
-          >
+          <Link to="/expenses" className="mobile-add" aria-label="Add an expense">
             <IconPlus />
           </Link>
+
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Sign out"
+            onClick={logout}
+            title="Sign out"
+          >
+            <IconLogout />
+          </button>
         </header>
 
         <main id="main-content" className="content">
@@ -115,7 +93,7 @@ export default function AppLayout() {
 
         <footer className="app-footer">
           <span>Expense Tracker · Personal finance workspace</span>
-          <span>React · Express · PostgreSQL</span>
+          {user ? <span className="app-footer-user">Signed in as {user.email}</span> : null}
         </footer>
       </div>
     </div>

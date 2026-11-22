@@ -1,29 +1,188 @@
 import { createApp } from './app.js';
-import { config, requireDatabaseUrl } from './config/env.js';
+import {
+  config,
+  requireDatabaseUrl,
+  requireJwtSecret,
+} from './config/env.js';
 import { closePool, getPool } from './config/db.js';
 import { PgExpenseRepository } from './repositories/PgExpenseRepository.js';
+import { PgUserRepository } from './repositories/PgUserRepository.js';
+import { PgAdminRepository } from './repositories/PgAdminRepository.js';
 import { ExpenseService } from './services/expenseService.js';
+import { AuthService } from './services/authService.js';
+import { SupabaseAuthService } from './services/supabaseAuthService.js';
+import { AdminService } from './services/adminService.js';
+import { AutomationClient } from './services/automationClient.js';
+import { createIntervalWorker } from './services/reminderService.js';
+import { createRealtimeBus } from './services/realtimeBus.js';
+import { createTaskEngine } from './bootstrap/taskEngine.js';
 import { createExpenseController } from './controllers/expenseController.js';
+import { createAuthController } from './controllers/authController.js';
+import { createAdminController } from './controllers/adminController.js';
+import { createTaskController } from './controllers/taskController.js';
+import { createNotificationController } from './controllers/notificationController.js';
+import { createRealtimeController } from './controllers/realtimeController.js';
+import { createInternalAutomationController } from './controllers/internalAutomationController.js';
 
 requireDatabaseUrl();
+const jwtSecret = requireJwtSecret();
 
 const pool = getPool();
-const repository = new PgExpenseRepository(pool);
-const service = new ExpenseService(repository);
-const controller = createExpenseController(service);
+
+const expenseRepository = new PgExpenseRepository(pool);
+const userRepository = new PgUserRepository(pool);
+const adminRepository = new PgAdminRepository(pool);
+const realtimeBus = createRealtimeBus();
+
+const {
+  notificationService,
+  taskService,
+  taskEventService,
+  reminderService,
+} = createTaskEngine({
+  pool,
+  userRepository,
+  expenseRepository,
+  realtimeBus,
+  options: {
+    dueSoonHours: config.reminderDueSoonHours,
+    longRunningHours: config.reminderLongRunningHours,
+    criticalAgeHours: config.reminderCriticalAgeHours,
+    repeatedFailureThreshold: config.repeatedFailureThreshold,
+  },
+});
+
+const expenseController = createExpenseController(
+  new ExpenseService(expenseRepository, {
+    onExpenseCreated: (expense) =>
+      taskEventService.handleExpenseCreated(expense),
+  }),
+);
+const authService = new AuthService(userRepository, {
+  jwtSecret,
+  jwtExpiresIn: config.jwtExpiresIn,
+});
+const authController = createAuthController(authService);
+const supabaseAuthService = new SupabaseAuthService({
+  authService,
+  userRepository,
+  supabaseUrl: config.supabaseUrl,
+  supabaseAnonKey: config.supabaseAnonKey,
+});
+if (config.supabaseUrl && config.supabaseAnonKey) {
+  console.log('[auth] Supabase Google login is enabled for Google users.');
+}
+const automationClient = new AutomationClient({
+  baseUrl: config.automationUrl,
+  apiKey: config.automationKey,
+});
+const adminController = createAdminController(
+  new AdminService(adminRepository),
+  automationClient,
+);
+const taskController = createTaskController(taskService, notificationService);
+const notificationController =
+  createNotificationController(notificationService);
+const realtimeController = createRealtimeController({
+  realtimeBus,
+  notificationService,
+});
+const internalAutomationController = createInternalAutomationController(
+  taskEventService,
+);
 
 const app = createApp({
-  expenseController: controller,
+  expenseController,
+  authController,
+  authService,
+  adminController,
+  taskController,
+  notificationController,
+  realtimeController,
+  internalAutomationController,
+  internalAutomationKey: config.internalAutomationKey,
   frontendUrl: config.frontendUrl,
   healthCheck: () => pool.query('SELECT 1'),
+});
+
+app.post('/api/auth/supabase-login', async (req, res, next) => {
+  try {
+    const accessToken =
+      typeof req.body?.access_token === 'string'
+        ? req.body.access_token.trim()
+        : '';
+
+    if (!accessToken || accessToken.length > 8192) {
+      return res.status(400).json({
+        message: 'A Google access token is required.',
+      });
+    }
+
+    const session = await supabaseAuthService.loginWithToken(accessToken);
+    return res.status(200).json(session);
+  } catch (error) {
+    return next(error);
+  }
 });
 
 try {
   await pool.query('SELECT 1');
   console.log('[db] Connected to PostgreSQL');
+
+  const { rows } = await pool.query(
+    `SELECT to_regclass('public.admin_tasks') AS tasks,
+            to_regclass('public.admin_notifications') AS notifications,
+            to_regclass('public.automation_events') AS events`,
+  );
+
+  if (!rows[0]?.tasks || !rows[0]?.notifications || !rows[0]?.events) {
+    console.warn(
+      '[db] Task/notification tables are missing. Run "npm run db:migrate" before using the admin task engine.',
+    );
+  }
 } catch (error) {
   console.error('[db] Could not connect to PostgreSQL:', error.message);
   process.exit(1);
+}
+
+if (automationClient.configured) {
+  const status = await automationClient.getStatus();
+  console.log(
+    `[automation] Python service ${status.reachable ? 'reachable' : 'unreachable'} at ${config.automationUrl}`,
+  );
+} else {
+  console.warn(
+    '[automation] AUTOMATION_URL / AUTOMATION_KEY are not configured; admin CSV imports are disabled.',
+  );
+}
+
+if (!config.internalAutomationKey) {
+  console.warn(
+    '[automation] INTERNAL_AUTOMATION_KEY is not configured; POST /api/internal/automation/events is disabled.',
+  );
+}
+
+const workers = [];
+
+if (config.enableWorkers) {
+  const reminderWorker = createIntervalWorker({
+    name: 'reminders',
+    intervalMs: config.reminderIntervalMs,
+    run: () => reminderService.run(),
+  });
+  const eventWorker = createIntervalWorker({
+    name: 'automation-events',
+    intervalMs: config.automationEventIntervalMs,
+    run: () => taskEventService.processPending(20),
+  });
+
+  reminderWorker.start();
+  eventWorker.start();
+  workers.push(reminderWorker, eventWorker);
+} else {
+  console.warn(
+    '[workers] ENABLE_WORKERS=false; reminder and event workers are not running in this process.',
+  );
 }
 
 const server = app.listen(config.port, () => {
@@ -41,6 +200,10 @@ async function shutdown(signal) {
 
   shuttingDown = true;
   console.log(`[api] ${signal} received, shutting down gracefully...`);
+
+  for (const worker of workers) {
+    worker.stop();
+  }
 
   const forceExit = setTimeout(() => {
     console.error('[api] Shutdown timed out.');

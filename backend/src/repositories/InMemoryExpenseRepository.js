@@ -10,6 +10,8 @@ export class InMemoryExpenseRepository {
   constructor(seed = []) {
     this.expenses = seed.map((expense) => ({
       description: null,
+      source: 'manual',
+      import_run_id: null,
       created_at: new Date().toISOString(),
       ...expense,
     }));
@@ -40,6 +42,7 @@ export class InMemoryExpenseRepository {
       description: expense.description ?? null,
       expense_date: expense.expense_date,
       created_at: new Date().toISOString(),
+      source: 'manual',
     };
 
     this.expenses.push(created);
@@ -107,5 +110,63 @@ export class InMemoryExpenseRepository {
             b.total - a.total || a.category.localeCompare(b.category),
         ),
     };
+  }
+
+  async findPotentialDuplicates(expense) {
+    const normalize = (value) =>
+      String(value ?? '')
+        .trim()
+        .toLowerCase();
+
+    return this.expenses
+      .filter(
+        (item) =>
+          item.id !== expense.id &&
+          item.amount === expense.amount &&
+          item.category === expense.category &&
+          item.expense_date === expense.expense_date &&
+          normalize(item.description) === normalize(expense.description),
+      )
+      .slice(0, 5)
+      .map((item) => ({ ...item }));
+  }
+
+  async findDuplicatePairsForImportRun(importRunId) {
+    const normalize = (value) =>
+      String(value ?? '')
+        .trim()
+        .toLowerCase();
+
+    const runExpenses = this.expenses.filter(
+      (expense) => expense.import_run_id === importRunId,
+    );
+    const pairs = [];
+
+    for (let i = 0; i < runExpenses.length; i += 1) {
+      for (let j = i + 1; j < runExpenses.length; j += 1) {
+        const first = runExpenses[i];
+        const second = runExpenses[j];
+
+        const duplicate =
+          first.amount === second.amount &&
+          first.category === second.category &&
+          first.expense_date === second.expense_date &&
+          normalize(first.description) === normalize(second.description);
+
+        if (!duplicate) {
+          continue;
+        }
+
+        const [primary, other] =
+          first.id < second.id ? [first, second] : [second, first];
+
+        pairs.push({
+          expense: { ...primary },
+          duplicateIds: [other.id],
+        });
+      }
+    }
+
+    return pairs.slice(0, 25);
   }
 }

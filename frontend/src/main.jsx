@@ -5,13 +5,16 @@ import '@fontsource-variable/inter';
 import './styles/index.css';
 import App from './App.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

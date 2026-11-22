@@ -2,13 +2,14 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AppLayout from './components/AppLayout.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
+import TasksPage from './pages/TasksPage.jsx';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-
-// Recharts is only needed on the analytics page. Lazy loading keeps the main
-// dashboard bundle small for visitors who never open /admin.
-const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
+import { useAuth, AdminRoute } from './context/AuthContext.jsx';
 
 function AnalyticsFallback() {
   return (
@@ -24,16 +25,39 @@ export default function App() {
     <ErrorBoundary>
       <Routes>
         <Route element={<AppLayout />}>
+          <Route path="/login" element={<LoginPage />} />
           <Route index element={<DashboardPage />} />
           <Route path="expenses" element={<ExpensesPage />} />
+
           <Route
             path="admin"
             element={
-              <Suspense fallback={<AnalyticsFallback />}>
-                <AdminPage />
-              </Suspense>
+              <AdminRoute>
+                <Suspense fallback={<AnalyticsFallback />}>
+                  <AdminPage />
+                </Suspense>
+              </AdminRoute>
             }
           />
+
+          <Route
+            path="tasks"
+            element={
+              <AdminRoute>
+                <TasksPage />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="notifications"
+            element={
+              <AdminRoute>
+                <NotificationsPage />
+              </AdminRoute>
+            }
+          />
+
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

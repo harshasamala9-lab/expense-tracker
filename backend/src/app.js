@@ -9,6 +9,12 @@ import {
   createExpenseRouter,
   createSummaryRouter,
 } from './routes/expenseRoutes.js';
+import { createAuthRouter } from './routes/authRoutes.js';
+import { createAdminRouter } from './routes/adminRoutes.js';
+import { createTaskRouter } from './routes/taskRoutes.js';
+import { createNotificationRouter } from './routes/notificationRoutes.js';
+import { createRealtimeRouter } from './routes/realtimeRoutes.js';
+import { createInternalAutomationRouter } from './routes/internalAutomationRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 
@@ -35,8 +41,8 @@ function buildCorsOptions(frontendUrl) {
         new AppError(403, 'This origin is not allowed to access the API.'),
       );
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Accept'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     maxAge: 86_400,
   };
 }
@@ -44,11 +50,19 @@ function buildCorsOptions(frontendUrl) {
 /**
  * Builds the Express application without starting a server.
  *
- * Dependencies are injected so tests can pass an in-memory repository while
- * production passes the PostgreSQL repository.
+ * Dependencies are injected so tests can pass in-memory repositories while
+ * production passes the PostgreSQL implementations.
  */
 export function createApp({
   expenseController,
+  authController,
+  authService,
+  adminController,
+  taskController = null,
+  notificationController = null,
+  realtimeController = null,
+  internalAutomationController = null,
+  internalAutomationKey = '',
   frontendUrl = '',
   healthCheck,
   enableLogging = true,
@@ -57,12 +71,27 @@ export function createApp({
     throw new Error('createApp requires an expenseController.');
   }
 
+  if (!authController || !authService) {
+    throw new Error('createApp requires authController and authService.');
+  }
+
+  if (!adminController) {
+    throw new Error('createApp requires an adminController.');
+  }
+
   const app = express();
   app.disable('x-powered-by');
 
+  if (config.nodeEnv === 'production') {
+    // Render terminates TLS at its proxy. Trusting the first proxy hop lets
+    // the rate limiter see the real client IP without trusting arbitrary
+    // client-supplied forwarding headers.
+    app.set('trust proxy', 1);
+  }
+
   app.use(helmet());
   app.use(cors(buildCorsOptions(frontendUrl)));
-  app.use(express.json({ limit: '16kb' }));
+  app.use(express.json({ limit: '64kb' }));
 
   if (enableLogging) {
     app.use(
@@ -75,7 +104,7 @@ export function createApp({
   app.get('/', (req, res) => {
     res.status(200).json({
       name: 'Expense Tracker API',
-      version: '1.0.0',
+      version: '2.0.0',
       endpoints: [
         'GET /api/health',
         'GET /api/expenses?category=Food',
@@ -83,6 +112,27 @@ export function createApp({
         'PUT /api/expenses/:id',
         'DELETE /api/expenses/:id',
         'GET /api/summary',
+        'POST /api/auth/login',
+        'GET /api/auth/me',
+        'GET /api/admin/analytics',
+        'GET /api/admin/automation/status',
+        'POST /api/admin/automation/import',
+        'GET /api/admin/tasks',
+        'POST /api/admin/tasks',
+        'GET /api/admin/tasks/summary',
+        'GET /api/admin/tasks/:id',
+        'PATCH /api/admin/tasks/:id',
+        'POST /api/admin/tasks/:id/start',
+        'POST /api/admin/tasks/:id/complete',
+        'POST /api/admin/tasks/:id/cancel',
+        'POST /api/admin/tasks/:id/assign',
+        'POST /api/admin/tasks/:id/notes',
+        'GET /api/admin/notifications',
+        'GET /api/admin/notifications/unread-count',
+        'POST /api/admin/notifications/:id/read',
+        'POST /api/admin/notifications/read-all',
+        'GET /api/admin/realtime',
+        'POST /api/internal/automation/events',
       ],
     });
   });
@@ -101,6 +151,40 @@ export function createApp({
       });
     }),
   );
+
+  app.use('/api/auth', createAuthRouter(authController, authService));
+  app.use('/api/admin', createAdminRouter(adminController, authService));
+
+  if (taskController) {
+    app.use(
+      '/api/admin/tasks',
+      createTaskRouter(taskController, authService),
+    );
+  }
+
+  if (notificationController) {
+    app.use(
+      '/api/admin/notifications',
+      createNotificationRouter(notificationController, authService),
+    );
+  }
+
+  if (realtimeController) {
+    app.use(
+      '/api/admin/realtime',
+      createRealtimeRouter(realtimeController, authService),
+    );
+  }
+
+  if (internalAutomationController) {
+    app.use(
+      '/api/internal/automation',
+      createInternalAutomationRouter(
+        internalAutomationController,
+        internalAutomationKey,
+      ),
+    );
+  }
 
   app.use('/api/expenses', createExpenseRouter(expenseController));
   app.use('/api/summary', createSummaryRouter(expenseController));

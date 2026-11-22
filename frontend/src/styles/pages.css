@@ -8,6 +8,230 @@
   gap: 20px;
 }
 
+/* --------------------------------------------------------------------------
+   Auth pages (login, tasks, notifications)
+   -------------------------------------------------------------------------- */
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  padding: 32px 16px;
+}
+
+.auth-card {
+  width: min(100%, 440px);
+  padding: 32px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.auth-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.auth-form input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.auth-form input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn-google:hover {
+  background: var(--surface-strong);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-footnote {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tasks-stat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 20px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.task-item--pending {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.task-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.task-title {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-description {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin: 4px 0 0;
+}
+
+.task-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12.5px;
+  flex-wrap: wrap;
+}
+
+.task-due { color: var(--accent-strong); }
+.task-due.overdue { color: var(--danger-strong); }
+
+.task-status--PENDING { background: var(--accent-soft); color: var(--accent-strong); }
+.task-status--COMPLETED { background: var(--accent-soft); color: var(--accent-strong); }
+.task-status--CANCELLED { background: var(--danger-soft); color: var(--danger-strong); }
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.task-note-input {
+  width: 120px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.notification-item--unread {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.notification-item-icon {
+  color: var(--accent-strong);
+}
+
+.notification-item-body {
+  flex: 1;
+}
+
+.notification-item-unread-count {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.app-footer-user {
+  color: var(--muted);
+}
+
+.sidebar-footer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-signout {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.sidebar-signout:hover {
+  color: var(--danger-strong);
+}
+
+.sidebar-footer-email {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+
 .dashboard-grid > .card {
   min-width: 0;
 }

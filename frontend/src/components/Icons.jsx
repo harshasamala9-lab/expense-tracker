@@ -186,6 +186,68 @@ export function IconLock(props) {
   );
 }
 
+export function IconGoogle(props) {
+  return (
+    <IconBase {...props} size={16}>
+      <path d="M16.5 14.6a8.5 8.5 0 0 1-6.8 4.7c-2.6 0-5-1-6.8-2.7l-2.3 1.8A10 10 0 0 0 12 22c4.1 0 7.8-1.6 10.6-4.2l-3.2-3.2Z" />
+      <path d="M5.4 12.1a9 9 0 0 1 6.6-9.4c-2.1-1.3-4.4-2-6.6-2-6 0-11 4.2-11 10a7.5 7.5 0 0 0 .2 1.7l2.4-1.9Z" />
+      <path d="M19.8 11.6a10 10 0 0 0-1-1.7L19.2 10l2.3 2.3c.3-1 .3-2 .2-3Z" />
+    </IconBase>
+  );
+}
+
+export function IconBell(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M6.3 6.3a6 6 0 1 1 12 12" />
+      <path d="M8.5 4.3a8.5 8.5 0 0 1 15 0" />
+      <path d="M15 18.3a2 2 0 1 1-4 0H15Z" />
+      <path d="M17.5 19.5A8 8 0 0 1 9.5 19" />
+    </IconBase>
+  );
+}
+
+export function IconTasks(props) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
+      <path d="M17 14l-4 4-3-3" />
+    </IconBase>
+  );
+}
+
+export function IconClock(props) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7v4.5l3 2" />
+    </IconBase>
+  );
+}
+
+export function IconPin(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M20 13V6.5A3.5 3.5 0 0 0 13.5 3h-4A3.5 3.5 0 0 0 6 6.5V13" />
+      <path d="M7 20.5A6.5 6.5 0 0 0 20.5 7h-2A4.5 4.5 0 0 0 16 10.5V13a4 4 0 1 1-8 0V10.5A4.5 4.5 0 0 0 6.5 6h-2A6.5 6.5 0 0 0 7 20.5Z" />
+    </IconBase>
+  );
+}
+
+export function IconLogout(props) {
+  return (
+    <IconBase {...props}>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+      <path d="M16 17h5v-1a5 5 0 0 0-5-5h-1" />
+      <path d="m21 3-7 7" />
+      <path d="M13 10l-7 7h2l4-4" />
+    </IconBase>
+  );
+}
+
 export function IconLogo({ size = 22, className = '', ...rest }) {
   return (
     <svg

@@ -1,9 +1,13 @@
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import {
+  IconBell,
   IconChartPie,
   IconDashboard,
   IconLogo,
+  IconLogout,
   IconReceipt,
+  IconTasks,
   IconWallet,
   IconX,
 } from './Icons.jsx';
@@ -11,6 +15,8 @@ import {
 const workspaceLinks = [
   { to: '/', label: 'Dashboard', icon: IconDashboard, end: true },
   { to: '/expenses', label: 'Expenses', icon: IconReceipt },
+  { to: '/tasks', label: 'Tasks', icon: IconTasks },
+  { to: '/notifications', label: 'Notifications', icon: IconBell },
 ];
 
 const insightLinks = [
@@ -36,6 +42,8 @@ function NavigationLink({ link, onNavigate }) {
 }
 
 export default function Sidebar({ open, onClose }) {
+  const { user, logout } = useAuth();
+
   return (
     <aside
       className={`sidebar${open ? ' sidebar--open' : ''}`}
@@ -88,8 +96,19 @@ export default function Sidebar({ open, onClose }) {
       </div>
 
       <div className="sidebar-footer">
-        <span>Expense Tracker</span>
-        <span>v1.0</span>
+        <div className="sidebar-footer-top">
+          <span className="sidebar-footer-version">Expense Tracker v1.0</span>
+          <button
+            type="button"
+            className="sidebar-signout"
+            aria-label="Sign out"
+            title="Sign out"
+            onClick={logout}
+          >
+            <IconLogout />
+          </button>
+        </div>
+        <span className="sidebar-footer-email">{user?.email ?? ''}</span>
       </div>
     </aside>
   );

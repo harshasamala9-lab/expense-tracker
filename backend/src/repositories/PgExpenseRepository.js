@@ -18,6 +18,7 @@ function mapExpense(row) {
       row.created_at instanceof Date
         ? row.created_at.toISOString()
         : row.created_at,
+    ...(row.source ? { source: row.source } : {}),
   };
 }
 
@@ -129,5 +130,67 @@ export class PgExpenseRepository {
         count: Number(row.expense_count),
       })),
     };
+  }
+
+  async findPotentialDuplicates(expense, client = this.pool) {
+    const { rows } = await client.query(
+      `SELECT id, amount, category, description, expense_date, created_at, source
+         FROM expenses
+        WHERE id <> $1
+          AND amount = $2
+          AND category = $3
+          AND expense_date = $4
+          AND LOWER(COALESCE(description, '')) = LOWER(COALESCE($5, ''))
+          AND created_at >= NOW() - INTERVAL '24 hours'
+        ORDER BY created_at DESC
+        LIMIT 5`,
+      [
+        expense.id,
+        expense.amount,
+        expense.category,
+        expense.expense_date,
+        expense.description,
+      ],
+    );
+
+    return rows.map(mapExpense);
+  }
+
+  /**
+   * Finds duplicate pairs introduced by one automation import run. Only pairs
+   * where the first row's UUID sorts before the second are returned, so a pair
+   * is reported exactly once. This never deletes or mutates an expense.
+   */
+  async findDuplicatePairsForImportRun(importRunId, client = this.pool) {
+    const { rows } = await client.query(
+      `SELECT a.id,
+              a.amount,
+              a.category,
+              a.description,
+              a.expense_date,
+              a.created_at,
+              a.source,
+              array_agg(b.id ORDER BY b.id) AS duplicate_ids
+         FROM expenses a
+         JOIN expenses b
+           ON b.id <> a.id
+          AND b.amount = a.amount
+          AND b.category = a.category
+          AND b.expense_date = a.expense_date
+          AND LOWER(COALESCE(b.description, '')) =
+              LOWER(COALESCE(a.description, ''))
+        WHERE a.import_run_id = $1
+          AND a.id < b.id
+        GROUP BY a.id, a.amount, a.category, a.description,
+                 a.expense_date, a.created_at, a.source
+        ORDER BY a.created_at ASC
+        LIMIT 25`,
+      [importRunId],
+    );
+
+    return rows.map((row) => ({
+      expense: mapExpense(row),
+      duplicateIds: row.duplicate_ids ?? [],
+    }));
   }
 }

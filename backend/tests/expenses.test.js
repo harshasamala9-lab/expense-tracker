@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import request from 'supertest';
-import { createApp } from '../src/app.js';
-import { createExpenseController } from '../src/controllers/expenseController.js';
-import { InMemoryExpenseRepository } from '../src/repositories/InMemoryExpenseRepository.js';
-import { ExpenseService } from '../src/services/expenseService.js';
+import { buildTestApp } from './helpers/buildTestApp.js';
 
 const FOOD_ID = '11111111-1111-4111-8111-111111111111';
 const TRAVEL_ID = '22222222-2222-4222-8222-222222222222';
@@ -45,22 +42,14 @@ const validPayload = {
   expense_date: '2026-11-21',
 };
 
-function buildTestApp(seedData = []) {
-  const repository = new InMemoryExpenseRepository(seedData);
-  const service = new ExpenseService(repository);
-  const controller = createExpenseController(service);
-  const app = createApp({
-    expenseController: controller,
-    enableLogging: false,
-    healthCheck: async () => {},
-  });
-
-  return { app, repository };
+function buildExpenseTestApp(seedData = []) {
+  const { app, expenseRepository } = buildTestApp({ seed: seedData });
+  return { app, repository: expenseRepository };
 }
 
 describe('Expense Tracker API', () => {
   it('creates a valid expense and returns 201', async () => {
-    const { app, repository } = buildTestApp();
+    const { app, repository } = buildExpenseTestApp();
 
     const response = await request(app)
       .post('/api/expenses')
@@ -79,7 +68,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('trims descriptions and stores an omitted description as null', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const withSpaces = await request(app)
       .post('/api/expenses')
@@ -95,7 +84,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('rejects zero, negative, non-numeric, and over-precise amounts', async () => {
-    const { app, repository } = buildTestApp();
+    const { app, repository } = buildExpenseTestApp();
 
     for (const amount of [0, -5, 'not-a-number', null, 12.345]) {
       const response = await request(app)
@@ -114,7 +103,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('rejects invalid categories, dates, and non-string descriptions', async () => {
-    const { app, repository } = buildTestApp();
+    const { app, repository } = buildExpenseTestApp();
 
     const invalidCategory = await request(app)
       .post('/api/expenses')
@@ -150,7 +139,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('returns 404 for a valid UUID that does not exist', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const updateResponse = await request(app)
       .put(`/api/expenses/${MISSING_ID}`)
@@ -166,7 +155,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('returns 400 for an invalid UUID', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const updateResponse = await request(app)
       .put('/api/expenses/not-a-uuid')
@@ -180,7 +169,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('lists expenses newest first by expense date', async () => {
-    const { app } = buildTestApp(seed);
+    const { app } = buildExpenseTestApp(seed);
 
     const response = await request(app).get('/api/expenses');
 
@@ -193,7 +182,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('filters expenses by category and rejects invalid filters', async () => {
-    const { app } = buildTestApp(seed);
+    const { app } = buildExpenseTestApp(seed);
 
     const filtered = await request(app).get('/api/expenses?category=Food');
     assert.equal(filtered.status, 200);
@@ -209,7 +198,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('updates an existing expense', async () => {
-    const { app, repository } = buildTestApp(seed);
+    const { app, repository } = buildExpenseTestApp(seed);
 
     const response = await request(app)
       .put(`/api/expenses/${FOOD_ID}`)
@@ -231,7 +220,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('deletes an expense and returns 204, then 404 on repeat', async () => {
-    const { app, repository } = buildTestApp(seed);
+    const { app, repository } = buildExpenseTestApp(seed);
 
     const response = await request(app).delete(`/api/expenses/${TRAVEL_ID}`);
     assert.equal(response.status, 204);
@@ -243,7 +232,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('calculates the summary from stored expenses', async () => {
-    const { app } = buildTestApp(seed);
+    const { app } = buildExpenseTestApp(seed);
 
     const response = await request(app).get('/api/summary');
 
@@ -257,7 +246,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('returns an empty summary when there are no expenses', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const response = await request(app).get('/api/summary');
 
@@ -268,7 +257,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('rejects malformed JSON with a helpful 400 response', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const response = await request(app)
       .post('/api/expenses')
@@ -280,7 +269,7 @@ describe('Expense Tracker API', () => {
   });
 
   it('reports health and unknown routes as JSON', async () => {
-    const { app } = buildTestApp();
+    const { app } = buildExpenseTestApp();
 
     const health = await request(app).get('/api/health');
     assert.equal(health.status, 200);
@@ -292,13 +281,8 @@ describe('Expense Tracker API', () => {
   });
 
   it('allows configured origins and blocks unknown browser origins', async () => {
-    const repository = new InMemoryExpenseRepository();
-    const service = new ExpenseService(repository);
-    const controller = createExpenseController(service);
-    const app = createApp({
-      expenseController: controller,
+    const { app } = buildTestApp({
       frontendUrl: 'https://app.example.com',
-      enableLogging: false,
     });
 
     const allowed = await request(app)

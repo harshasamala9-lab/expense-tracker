@@ -27,6 +27,12 @@ export function errorHandler(error, req, res, next) {
   } else if (error.type === 'entity.too.large') {
     statusCode = 413;
     message = 'Request body is too large.';
+  } else if (error.name === 'MulterError') {
+    statusCode = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    message =
+      error.code === 'LIMIT_FILE_SIZE'
+        ? 'CSV files must be 2 MB or smaller.'
+        : 'The CSV upload could not be processed.';
   } else if (error.code === '22P02') {
     // invalid_text_representation
     statusCode = 400;
