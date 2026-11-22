@@ -150,6 +150,8 @@ export function createApp({
     }),
   );
 
+  app.post('/api/auth/supabase-login', authController.supabaseLogin);
+  app.post('/api/auth/google', authController.googleLogin);
   app.use('/api/auth', createAuthRouter(authController, authService));
   app.use('/api/admin', createAdminRouter(adminController, authService));
 

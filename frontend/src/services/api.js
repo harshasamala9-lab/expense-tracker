@@ -53,6 +53,7 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(20_000),
     });
   } catch {
     throw new ApiError(

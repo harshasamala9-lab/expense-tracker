@@ -63,7 +63,6 @@ const authService = new AuthService(userRepository, {
   jwtSecret,
   jwtExpiresIn: config.jwtExpiresIn,
 });
-const authController = createAuthController(authService);
 const googleAuthService = new GoogleAuthService({
   authService,
   userRepository,
@@ -82,6 +81,11 @@ const supabaseAuthService = new SupabaseAuthService({
 if (config.supabaseUrl && config.supabaseAnonKey) {
   console.log('[auth] Supabase Google login is enabled for Google users.');
 }
+const authController = createAuthController(
+  authService,
+  googleAuthService,
+  supabaseAuthService,
+);
 const automationClient = new AutomationClient({
   baseUrl: config.automationUrl,
   apiKey: config.automationKey,
@@ -113,38 +117,6 @@ const app = createApp({
   internalAutomationKey: config.internalAutomationKey,
   frontendUrl: config.frontendUrl,
   healthCheck: () => pool.query('SELECT 1'),
-});
-
-app.post('/api/auth/google', async (req, res, next) => {
-  try {
-    const session = await googleAuthService.exchange({
-      code: req.body?.code,
-      redirectUri: req.body?.redirectUri,
-    });
-    return res.status(200).json(session);
-  } catch (error) {
-    return next(error);
-  }
-});
-
-app.post('/api/auth/supabase-login', async (req, res, next) => {
-  try {
-    const accessToken =
-      typeof req.body?.access_token === 'string'
-        ? req.body.access_token.trim()
-        : '';
-
-    if (!accessToken || accessToken.length > 8192) {
-      return res.status(400).json({
-        message: 'A Google access token is required.',
-      });
-    }
-
-    const session = await supabaseAuthService.loginWithToken(accessToken);
-    return res.status(200).json(session);
-  } catch (error) {
-    return next(error);
-  }
 });
 
 try {

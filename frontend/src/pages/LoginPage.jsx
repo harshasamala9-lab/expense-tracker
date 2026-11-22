@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import InlineAlert from '../components/InlineAlert.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -31,10 +31,15 @@ function GoogleButton() {
 export default function LoginPage() {
   const { login, pendingOAuth } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(
+    new URLSearchParams(location.search).get('error') === 'google'
+      ? 'Google sign-in failed. Please try again.'
+      : null,
+  );
 
   const handleSubmit = async (event) => {
     event.preventDefault();

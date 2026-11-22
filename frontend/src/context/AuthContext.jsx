@@ -95,13 +95,13 @@ export function AuthProvider({ children }) {
     setPendingOAuth(true);
     window.history.replaceState({}, '', '/login');
     void api
-      .googleLogin(result.code, `${window.location.origin}/login`)
+      .googleLogin(result.code, `${window.location.origin}`)
       .then((session) => {
         try { window.localStorage.setItem(STORAGE_KEY, session.token); } catch {}
         navigate('/tasks', { replace: true });
         void refresh();
       })
-      .catch(() => navigate('/login'))
+      .catch(() => navigate('/login?error=google'))
       .finally(() => setPendingOAuth(false));
   }, [navigate, refresh]);
 
@@ -138,7 +138,7 @@ export function AuthProvider({ children }) {
 
     const params = new URLSearchParams({
       client_id: clientId,
-      redirect_uri: `${window.location.origin}/login`,
+      redirect_uri: `${window.location.origin}`,
       response_type: 'code',
       scope: 'openid email profile',
       state,
