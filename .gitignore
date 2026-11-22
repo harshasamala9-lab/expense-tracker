@@ -20,6 +20,10 @@ npm-debug.log*
 # Test output
 coverage/
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # Local database data (used only for local verification)
 .pgdata/
 .pg/
